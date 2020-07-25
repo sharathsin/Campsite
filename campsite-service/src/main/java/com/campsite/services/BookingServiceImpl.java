@@ -81,7 +81,7 @@ public class BookingServiceImpl implements BookingService {
     public List<LocalDate> getAvailableDates(String startDate, String endDate) throws CampsiteValidationException {
         LocalDate startLocalDate = convertDate(startDate);
         LocalDate endLocalDate;
-        if (StringUtils.isEmpty(endDate)) {
+        if (!StringUtils.isEmpty(endDate)) {
             endLocalDate = convertDate(endDate);
         } else {
             endLocalDate = startLocalDate.plusMonths(1);
