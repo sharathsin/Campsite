@@ -17,7 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.campsite.model.input.CreateBooking;
-import com.campsite.model.input.ModifyBooking;
 import com.campsite.model.output.BookingOutput;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,9 +41,9 @@ public class CancelBookingTest {
 
         String inputPayload = jsonMapper.writeValueAsString(createBooking);
 
-        String response = mockMvc.perform(delete(getBookTargetUrlPath())
+        String response = mockMvc.perform(post(getBookTargetUrlPath())
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON).content(inputPayload)
                 )
                 .andExpect(status().is(201))
                 .andReturn().getResponse().getContentAsString();
@@ -53,11 +52,11 @@ public class CancelBookingTest {
         BookingOutput bookingOutput = jsonMapper.readValue(response, BookingOutput.class);
 
 
-        response = mockMvc.perform(post(getCancelTargetUrlPath(bookingOutput.getBookingId()))
+        response = mockMvc.perform(delete(getCancelTargetUrlPath(bookingOutput.getBookingId()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(inputPayload))
-                .andExpect(status().is(201))
+                .andExpect(status().is(204))
                 .andReturn().getResponse().getContentAsString();
 
 
@@ -72,7 +71,7 @@ public class CancelBookingTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().is(409))
+                .andExpect(status().is(404))
                 .andReturn().getResponse().getContentAsString();
     }
 
