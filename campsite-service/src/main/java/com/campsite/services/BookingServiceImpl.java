@@ -71,7 +71,7 @@ public class BookingServiceImpl implements BookingService {
             List<BookingDTO> toBeModified = mapBooking(modifyBooking);
             filterToBeCancelledBookings(bookingDTOList, cancelBookings, toBeModified);
             replaceToBeSavedBookings(bookingDTOList, toBeSavedBookings, toBeModified);
-            saveBookings(UUID.fromString(modifyBooking.getBookingId()), bookingDTOList);
+            saveBookings(UUID.fromString(modifyBooking.getBookingId()), toBeSavedBookings);
             bookingDao.cancelBooking(cancelBookings);
         }
         return bookingOutput;
