@@ -24,13 +24,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 public class CancelBookingTest {
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper jsonMapper;
+    @Autowired private ObjectMapper jsonMapper;
+
     @Test
-    public void  modifyBooking_givenValidBookingIdIsSent_shouldReturn201() throws Exception {
+    public void modifyBooking_givenValidBookingIdIsSent_shouldReturn201() throws Exception {
         CreateBooking createBooking = new CreateBooking();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         createBooking.setArrivalDate(LocalDate.now().plusDays(9).format(dtf));
@@ -38,48 +37,33 @@ public class CancelBookingTest {
         createBooking.setEmail("test@gmail.com");
         createBooking.setName("name");
 
-
         String inputPayload = jsonMapper.writeValueAsString(createBooking);
 
-        String response = mockMvc.perform(post(getBookTargetUrlPath())
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON).content(inputPayload)
-                )
-                .andExpect(status().is(201))
-                .andReturn().getResponse().getContentAsString();
-
+        String response = mockMvc.perform(
+                post(getBookTargetUrlPath()).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).content(inputPayload))
+                .andExpect(status().is(201)).andReturn().getResponse().getContentAsString();
 
         BookingOutput bookingOutput = jsonMapper.readValue(response, BookingOutput.class);
 
-
-        response = mockMvc.perform(delete(getCancelTargetUrlPath(bookingOutput.getBookingId()))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(inputPayload))
-                .andExpect(status().is(204))
-                .andReturn().getResponse().getContentAsString();
-
-
+        response = mockMvc.perform(delete(getCancelTargetUrlPath(bookingOutput.getBookingId())).contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON).content(inputPayload)).andExpect(status().is(204)).andReturn().getResponse().getContentAsString();
 
     }
 
     @Test
-    public void  modifyBooking_whenInvalidBookingIdIsSent_shouldReturn409() throws Exception {
+    public void modifyBooking_whenInvalidBookingIdIsSent_shouldReturn409() throws Exception {
 
-
-        String response = mockMvc.perform(delete(getCancelTargetUrlPath("Invalid"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().is(404))
-                .andReturn().getResponse().getContentAsString();
+        String response = mockMvc
+                .perform(delete(getCancelTargetUrlPath("Invalid")).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(404)).andReturn().getResponse().getContentAsString();
     }
 
     private String getBookTargetUrlPath() {
         return "/v1/bookReservation";
     }
+
     private String getCancelTargetUrlPath(String bookingId) {
-        return "/v1/cancelReservation?bookingId="+bookingId;
+        return "/v1/cancelReservation?bookingId=" + bookingId;
     }
 
 }

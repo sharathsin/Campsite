@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.campsite.dao.BookingDao;
+import com.campsite.dto.BookingDTO;
 import com.campsite.model.error.ErrorOutput;
 import com.campsite.model.input.CreateBooking;
 import com.campsite.model.input.ModifyBooking;
@@ -32,6 +35,9 @@ public class ModifyBookingTest {
 
     @Autowired
     private ObjectMapper jsonMapper;
+
+    @Autowired
+    private BookingDao bookingDao;
 
 
     @Test
@@ -297,8 +303,64 @@ public class ModifyBookingTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(inputPayload))
+                .andExpect(status().is(404))
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    public void  modifyBooking_whenModifyingBookingToADateAlreadyBooked_shouldReturn409() throws Exception {
+        CreateBooking createBooking = new CreateBooking();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        createBooking.setArrivalDate(LocalDate.now().plusDays(15).format(dtf));
+        createBooking.setDepartureDate(LocalDate.now().plusDays(16).format(dtf));
+        createBooking.setEmail("test@gmail.com");
+        createBooking.setName("name");
+
+
+        ModifyBooking modifyBooking = new ModifyBooking();
+        modifyBooking.setArrivalDate(LocalDate.now().plusDays(17).format(dtf));
+        modifyBooking.setDepartureDate(LocalDate.now().plusDays(18).format(dtf));
+        modifyBooking.setEmail("test@gmail.com");
+        modifyBooking.setName("name");
+        String inputPayload = jsonMapper.writeValueAsString(createBooking);
+
+
+        String response = mockMvc.perform(post(getBookTargetUrlPath())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(inputPayload))
+                .andExpect(status().is(201))
+                .andReturn().getResponse().getContentAsString();
+
+
+        BookingOutput bookingOutput = jsonMapper.readValue(response, BookingOutput.class);
+        modifyBooking.setBookingId(bookingOutput.getBookingId());
+        createBooking.setArrivalDate(LocalDate.now().plusDays(17).format(dtf));
+        createBooking.setDepartureDate(LocalDate.now().plusDays(18).format(dtf));
+        createBooking.setEmail("test@gmail.com");
+        createBooking.setName("name");
+        inputPayload = jsonMapper.writeValueAsString(createBooking);
+        response = mockMvc.perform(post(getBookTargetUrlPath())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(inputPayload))
+                .andExpect(status().is(201))
+                .andReturn().getResponse().getContentAsString();
+        bookingOutput = jsonMapper.readValue(response, BookingOutput.class);
+        assertNotNull(bookingOutput.getBookingId());
+        List<BookingDTO> b =bookingDao.findBooking(bookingOutput.getBookingId());
+
+        inputPayload = jsonMapper.writeValueAsString(modifyBooking);
+
+        response = mockMvc.perform(post(getModifyTargetUrlPath())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(inputPayload))
                 .andExpect(status().is(409))
                 .andReturn().getResponse().getContentAsString();
+
+
+
     }
 
     private String getBookTargetUrlPath() {
